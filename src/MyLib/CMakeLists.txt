@@ -4,6 +4,7 @@ find_package(Qt6 COMPONENTS Core REQUIRED)
 
 set(SOURCE_FILES
     MyClass.cpp
+	measure.cpp
 )
 
 set (MOC_HEADERS
@@ -11,6 +12,7 @@ set (MOC_HEADERS
 
 set(HEADER_FILES
     MyClass.h
+	measure.hpp
     ${MOC_HEADERS}
 )
 
