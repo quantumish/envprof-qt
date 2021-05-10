@@ -1,0 +1,13 @@
+#+TITLE: envprof
+#+SUBTITLE: an environmental profiler
+
+* About
+envprof is a climate-conscious profiler designed to lower the bar to making your code's carbon footprint smaller. 
+
+* Building
+#+BEGIN_SRC sh
+  mkdir build && cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Debug
+  cmake --build .
+#+END_SRC
+

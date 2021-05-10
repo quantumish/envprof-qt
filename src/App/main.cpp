@@ -9,6 +9,9 @@
  
 int main(int argc, char *argv[]) 
 {
+	double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000));
+	uint64_t before = cpu_uJ();
+	auto start = std::chrono::high_resolution_clock::now();  
     QApplication app(argc, argv);
  
     QWidget widget;
@@ -17,9 +20,9 @@ int main(int argc, char *argv[])
     
     QGridLayout *gridLayout = new QGridLayout(&widget);
 
-	std::cout << cpu_uJ() << "\n";
-	
-    QLabel* label = new QLabel("library world!!");
+	std::ostringstream os;
+	os << baseline;
+    QLabel* label = new QLabel(QString::fromStdString("Baseline mW: " + os.str()));
 
     QPushButton* btn1 = new QPushButton("Push Me");
     QObject::connect(btn1, &QPushButton::released, &widget,
@@ -37,9 +40,10 @@ int main(int argc, char *argv[])
     gridLayout->addWidget(btn1);
  
     widget.show();
- 
-    return app.exec();
 
-	
-	
+	auto end = std::chrono::high_resolution_clock::now();
+	uint64_t after = cpu_uJ();
+	double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();   
+	std::cout << (after-before)/time - baseline << "mW \n";
+	// return app.exec();	
 }
