@@ -2,29 +2,33 @@
 #include <cstdint>
 #include <string>
 #include <chrono>
+#include <vector>
 
-class FlameGraph {};
+struct Func {
+    std::string name;
+    const uint64_t start;
+    uint64_t energy;
+    uint64_t duration;
+    std::vector<Func> callees;
+    Func(std::string id, uint64_t now, uint64_t init_energy);    
+};
 
 class Profiler
 {
-	const std::chrono::milliseconds interval;
-	uint64_t prev_count;
-	uint64_t curr_count;
+    uint64_t samples;
+    const std::chrono::milliseconds interval;
+    uint64_t prev_count;
+    uint64_t curr_count;
+    pid_t pid;
+    std::vector<Func> funcs;
 	
-	pid_t pid;
-	
-	struct CallStack {};	
-	std::string raw_stack;
-	
-	void capture_and_freeze();
-	uint64_t sample_uJ();
-	CallStack parse_raw_stack();
-	void update_flamegraph();
-	void resume();
+    void capture_and_freeze();
+    uint64_t sample_uJ();    
+    void resume();
 public:
-	FlameGraph graph;
-	Profiler(pid_t pid);
-	Profiler(std::string cmd);
-	void start();
-	void report();
+    Profiler(pid_t pid);
+    Profiler(std::string cmd);
+    void start();
+    void report();
 };
+

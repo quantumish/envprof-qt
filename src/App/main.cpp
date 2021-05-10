@@ -5,13 +5,17 @@
 #include <QtWidgets/QPushButton>
 #include <iostream>
 #include <../MyLib/measure.hpp>
+#include <../MyLib/profiler.hpp>
+
 #include "Window1.h"
  
 int main(int argc, char *argv[]) 
 {
-	double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000));
-	uint64_t before = cpu_uJ();
-	auto start = std::chrono::high_resolution_clock::now();  
+    // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
+    // uint64_t before = cpu_uJ();
+    // auto start = std::chrono::high_resolution_clock::now();
+    Profiler prof(802858);
+    prof.start();
     QApplication app(argc, argv);
  
     QWidget widget;
@@ -20,9 +24,9 @@ int main(int argc, char *argv[])
     
     QGridLayout *gridLayout = new QGridLayout(&widget);
 
-	std::ostringstream os;
-	os << baseline;
-    QLabel* label = new QLabel(QString::fromStdString("Baseline mW: " + os.str()));
+    // 	std::ostringstream os;
+    // 	os << baseline;
+    // QLabel* label = new QLabel(QString::fromStdString("Baseline mW: " + os.str()));
 
     QPushButton* btn1 = new QPushButton("Push Me");
     QObject::connect(btn1, &QPushButton::released, &widget,
@@ -35,15 +39,15 @@ int main(int argc, char *argv[])
             delete dialog;
         });
 
-    label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-    gridLayout->addWidget(label);
+    // label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+    // gridLayout->addWidget(label);
     gridLayout->addWidget(btn1);
  
     widget.show();
 
-	auto end = std::chrono::high_resolution_clock::now();
-	uint64_t after = cpu_uJ();
-	double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();   
-	std::cout << (after-before)/time - baseline << "mW \n";
+	// auto end = std::chrono::high_resolution_clock::now();
+	// uint64_t after = cpu_uJ();
+	// double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();   
+	// std::cout << (after-before)/time - baseline << "mW \n";
 	// return app.exec();	
 }
