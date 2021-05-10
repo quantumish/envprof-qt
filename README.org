@@ -1,8 +1,10 @@
-#+TITLE: envprof
-#+SUBTITLE: an environmental profiler
+#+TITLE: envopt
+#+BEGIN_QUOTE
+/an environmental profiler/
+#+END_QUOTE
 
 * About
-envprof is a climate-conscious profiler designed to lower the bar to making your code's carbon footprint smaller. 
+envopt is a climate-conscious profiler designed to make reducing your code's carbon footprint an easier and simpler experience. 
 
 * Building
 #+BEGIN_SRC sh
