@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
     // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
     // uint64_t before = cpu_uJ();
     // auto start = std::chrono::high_resolution_clock::now();
-    Profiler prof(802858);
-    prof.start();
+    Profiler prof(493481);
+    prof.capture_and_freeze();
     QApplication app(argc, argv);
  
     QWidget widget;
@@ -24,9 +24,9 @@ int main(int argc, char *argv[])
     
     QGridLayout *gridLayout = new QGridLayout(&widget);
 
-    // 	std::ostringstream os;
-    // 	os << baseline;
-    // QLabel* label = new QLabel(QString::fromStdString("Baseline mW: " + os.str()));
+    	// std::ostringstream os;
+    	// os << baseline;
+    QLabel* label = new QLabel(QString::fromStdString("Baseline mW: "));
 
     QPushButton* btn1 = new QPushButton("Push Me");
     QObject::connect(btn1, &QPushButton::released, &widget,
@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
             delete dialog;
         });
 
-    // label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-    // gridLayout->addWidget(label);
+    label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+    gridLayout->addWidget(label);
     gridLayout->addWidget(btn1);
  
     widget.show();

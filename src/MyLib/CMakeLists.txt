@@ -27,4 +27,7 @@ add_library(MyLib STATIC
 target_link_libraries(MyLib
     Qt6::Core
     coverage_config
+	unwind
+	unwind-ptrace
+	unwind-generic
 )

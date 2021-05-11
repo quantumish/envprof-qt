@@ -8,6 +8,9 @@
 #include "measure.hpp"
 #include <iostream>
 #include <algorithm>
+#include <libunwind.h>
+#include <libunwind-x86.h>
+#include <libunwind-ptrace.h>
 
 Func::Func(std::string id, uint64_t now, uint64_t init_energy)
     :name(id), start(now), duration(0), energy(init_energy)
@@ -21,33 +24,21 @@ Profiler::Profiler(pid_t p)
 
 void Profiler::capture_and_freeze()
 {
-    std::string spid = std::to_string(pid);
-    // TODO Iterate over *all* threads.
-    std::ifstream istrm("/proc/"+spid+"/task/"+spid+"/stack");
-    if (!istrm.is_open()) {
-	throw std::runtime_error("Failed to view call stack - are you running with sudo? Is this the right PID?");		
-    }
-    prev_count = curr_count;
-    curr_count = cpu_uJ();
-    kill(pid, SIGSTOP);
-    std::vector<std::string> raw_stack;
-    std::string line;
-    while (std::getline(istrm, line)) {
-	lines_in_reverse.insert(lines_in_reverse.begin(), line);
-    }
-    std::vector<Func>& level = funcs;
-    for (std::string call : raw_stack) {
-        for (Func f : level) {
-	  if (f.name == call) {
-	    f.duration = samples - f.start;
-	    f.energy += curr_count - prev_count;
-	    level = level.callees;
-	    continue;
-	  }
-	}
-	level.emplace_back(call, samples, curr_count - prev_count);
-	level = level.callees;
-    }
+    void* ui = _UPT_create(pid);
+	if (!ui) throw std::runtime_error("_UPT_create() failed.");
+	ptrace(PTRACE_ATTACH, pid);
+	unw_cursor_t c;
+	unw_addr_space_t as = unw_create_addr_space(&_UPT_accessors, 0);
+	int rc = unw_init_remote(&c, as, ui);
+	if (rc != 0) throw std::runtime_error("Failed to initialize cursor for remote unwinding.");
+	do {
+		unw_word_t offset, pc;
+		char fname[64];
+		(void) unw_get_proc_name(&c, fname, sizeof(fname), &offset);
+		printf("\n%p : (%s+0x%x) [%p]", (void*)pc, fname, (int)offset, (void*)pc);
+	} while (unw_step(&c) > 0);
+	ptrace(PTRACE_DETACH, pid);
+	_UPT_destroy(ui);
 }
 
 uint64_t Profiler::sample_uJ()

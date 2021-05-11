@@ -22,7 +22,6 @@ class Profiler
     pid_t pid;
     std::vector<Func> funcs;
 	
-    void capture_and_freeze();
     uint64_t sample_uJ();    
     void resume();
 public:
@@ -30,5 +29,6 @@ public:
     Profiler(std::string cmd);
     void start();
     void report();
+	void capture_and_freeze();
 };
 
