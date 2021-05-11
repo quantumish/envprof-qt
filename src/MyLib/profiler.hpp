@@ -20,15 +20,17 @@ class Profiler
     uint64_t prev_count;
     uint64_t curr_count;
     pid_t pid;
-    std::vector<Func> funcs;
-	
+	uint64_t baseline;
+   
     uint64_t sample_uJ();    
     void resume();
 public:
     Profiler(pid_t pid);
     Profiler(std::string cmd);
+	std::vector<Func> funcs;
     void start();
     void report();
 	void capture_and_freeze();
+	void dump(std::vector<Func>& level, int indent = 0);
 };
 
