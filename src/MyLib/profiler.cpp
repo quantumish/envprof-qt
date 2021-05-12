@@ -7,7 +7,6 @@
 #include "profiler.hpp"
 #include "measure.hpp"
 #include <iostream>
-#include <algorithm>
 #include <time.h>
 #include <wait.h>
 #include <stdio.h>

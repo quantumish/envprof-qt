@@ -3,7 +3,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 find_package(Qt6 COMPONENTS Core REQUIRED)
 
 set(SOURCE_FILES
-    MyClass.cpp
 	measure.cpp
 	profiler.cpp
 )
@@ -12,7 +11,6 @@ set (MOC_HEADERS
 )
 
 set(HEADER_FILES
-    MyClass.h
 	measure.hpp
 	profiler.hpp
     ${MOC_HEADERS}

@@ -24,11 +24,8 @@ class Profiler
     uint64_t baseline;
   
     const Func* attempt_update(std::vector<Func*>& funcs, const std::string& name, uint64_t energy);
-    uint64_t sample_uJ();    
-    void resume();
 public:
     Profiler(pid_t pid);
-	Profiler(std::string path, char** args);
     Profiler(std::string cmd);
 	std::vector<Func*> funcs;
     void start();
