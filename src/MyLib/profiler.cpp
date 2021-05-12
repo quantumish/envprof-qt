@@ -41,7 +41,7 @@ void Profiler::capture_and_freeze()
 {
 	prev_count = curr_count;
 	curr_count = cpu_uJ();	
-	ptrace(PTRACE_ATTACH, pid, 0, 0);
+	ptrace(PTRACE_ATTACH, pid);
 	void* ui = _UPT_create(pid);
 	if (!ui) throw std::runtime_error("_UPT_create() failed.");
 	struct timespec t = { .tv_sec = 0, t.tv_nsec = 1000 };
@@ -61,7 +61,6 @@ void Profiler::capture_and_freeze()
 			throw std::runtime_error("Failed to initialize cursor for remote unwinding;");
         }
     }
-    int a = UNW_EUNSPEC;
 	std::vector<std::string> names;
 	do {
 	    unw_word_t offset, pc;
@@ -77,12 +76,10 @@ void Profiler::capture_and_freeze()
 			level->push_back(new Func(name, samples, curr_count - prev_count));
 			level = &level->back()->callees;
 		}
-	}	
+	}
+	_UPT_resume(as, &c, ui);
 	_UPT_destroy(ui);
-	ptrace(PTRACE_DETACH, pid, 0, 0);
-	ptrace(PTRACE_CONT, pid);
-		
-	// kill(pid, SIGCONT); // HACK I shouldn't have to do this for it to work...
+	kill(pid, SIGCONT); // HACK I shouldn't have to do this for it to work...
 }
 
 void Profiler::dump(std::vector<Func*>& level, int indent)
@@ -99,8 +96,8 @@ void Profiler::start()
     curr_count = cpu_uJ();
     std::cout << curr_count << '\n';
     // TODO Add exit condition
-	for (samples = 0; samples < 1000; samples++) {
+	for (samples = 0; samples < 1003; samples++) {
 		capture_and_freeze();
-		usleep(interval.count()*1000);		
+		usleep(interval.count()*10000);		
 	}
 }
