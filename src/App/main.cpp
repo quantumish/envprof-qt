@@ -11,15 +11,18 @@
  
 int main(int argc, char *argv[]) 
 {
+	setenv("XDG_RUNTIME_DIR", "/tmp/runtime-root", 0);
+	setenv("FONTCONFIG_PATH", "/etc/fonts", 0);	
     // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
     // uint64_t before = cpu_uJ();
     // auto start = std::chrono::high_resolution_clock::now();
-    Profiler prof(152712);
+    Profiler prof(173396);
     prof.start();
-    prof.capture_and_freeze();
-    prof.capture_and_freeze();	
-    //    prof.capture_and_freeze();	
-    prof.dump(prof.funcs, 0);
+	prof.capture_and_freeze();
+	prof.capture_and_freeze();
+	prof.capture_and_freeze();
+	prof.capture_and_freeze();	
+	prof.dump(prof.funcs, 0);
     QApplication app(argc, argv);
  
     QWidget widget;

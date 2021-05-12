@@ -10,7 +10,7 @@ struct Func {
     const uint64_t start;
     uint64_t energy;
     uint64_t duration;
-    std::vector<Func> callees;
+    std::vector<Func*> callees;
     Func(std::string id, uint64_t now, uint64_t init_energy);    
 };
 
@@ -23,16 +23,16 @@ class Profiler
     pid_t pid;
     uint64_t baseline;
   
-    const Func* attempt_update(std::vector<Func>& funcs, const std::string& name, uint64_t energy);
+    const Func* attempt_update(std::vector<Func*>& funcs, const std::string& name, uint64_t energy);
     uint64_t sample_uJ();    
     void resume();
 public:
     Profiler(pid_t pid);
     Profiler(std::string cmd);
-	std::vector<Func> funcs;
+	std::vector<Func*> funcs;
     void start();
     void report();
 	void capture_and_freeze();
-	void dump(std::vector<Func>& level, int indent = 0);
+	void dump(std::vector<Func*>& level, int indent = 0);
 };
 
