@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
     // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
     // uint64_t before = cpu_uJ();
     // auto start = std::chrono::high_resolution_clock::now();
+	// char* args[2] = {NULL};
     Profiler prof(strtoll(argv[1], NULL, 10));
     prof.start();   
 	prof.dump(prof.funcs, 0);

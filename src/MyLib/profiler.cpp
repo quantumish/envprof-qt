@@ -10,10 +10,13 @@
 #include <algorithm>
 #include <time.h>
 #include <wait.h>
+#include <stdio.h>
 #include <optional>
 #include <libunwind.h>
 #include <libunwind-x86.h>
 #include <libunwind-ptrace.h>
+
+extern char** environ;
 
 Func::Func(std::string id, uint64_t now, uint64_t init_energy)
     :name(id), start(now), duration(0), energy(init_energy)
@@ -23,6 +26,13 @@ Func::Func(std::string id, uint64_t now, uint64_t init_energy)
 Profiler::Profiler(pid_t p)
     :pid{p}, interval{1}
 {
+}
+
+Profiler::Profiler(std::string cmd)
+	:interval{1}
+{
+	FILE* p = popen((cmd + " & echo $!" ).c_str(), "r");	
+	fscanf(p, "%d", &pid);    
 }
 
 const Func* Profiler::attempt_update(std::vector<Func*>& funcs, const std::string& name, uint64_t energy)
@@ -44,23 +54,9 @@ void Profiler::capture_and_freeze()
 	ptrace(PTRACE_ATTACH, pid);
 	void* ui = _UPT_create(pid);
 	if (!ui) throw std::runtime_error("_UPT_create() failed.");
-	struct timespec t = { .tv_sec = 0, t.tv_nsec = 1000 };
-	nanosleep(&t, NULL);
 	unw_cursor_t c;
 	unw_addr_space_t as = unw_create_addr_space(&_UPT_accessors, 0);
 	int rc = unw_init_remote(&c, as, ui);
-	if (rc != 0) {
-        if (rc == UNW_EINVAL) {
-            throw std::runtime_error("Failed to initialize cursor for remote unwinding: UNW_EINVAL.");
-        } else if (rc == UNW_EUNSPEC) {
-			throw std::runtime_error("Failed to initialize cursor for remote unwinding: UNW_EUNSPEC.");
-        } else if (rc == UNW_EBADREG) {
-			throw std::runtime_error("Failed to initialize cursor for remote unwinding: UNW_EBADREG.");
-        } else {
-			std::cout << rc << "\n";
-			throw std::runtime_error("Failed to initialize cursor for remote unwinding;");
-        }
-    }
 	std::vector<std::string> names;
 	do {
 	    unw_word_t offset, pc;
@@ -86,15 +82,15 @@ void Profiler::dump(std::vector<Func*>& level, int indent)
 {
     for (Func* f : level) {
 		for (int i = 0; i < indent; i++) std::cout << " ";
-		std::cout << f->name << " - " << f->energy << "\n";
+		std::cout << f->name << " - " << f->energy << " uJ\n";
 		dump(f->callees, indent+1);
     }
 }
 
 void Profiler::start()
 {
+	std::cout << pid << " " << getpid() << "\n";
     curr_count = cpu_uJ();
-    std::cout << curr_count << '\n';
     // TODO Add exit condition
 	for (samples = 0; samples < 1003; samples++) {
 		capture_and_freeze();
