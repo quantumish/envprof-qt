@@ -3,6 +3,7 @@
 #include <string>
 #include <chrono>
 #include <vector>
+#include <optional>
 
 struct Func {
     std::string name;
@@ -20,8 +21,9 @@ class Profiler
     uint64_t prev_count;
     uint64_t curr_count;
     pid_t pid;
-	uint64_t baseline;
-   
+    uint64_t baseline;
+  
+    const Func* attempt_update(std::vector<Func>& funcs, const std::string& name, uint64_t energy);
     uint64_t sample_uJ();    
     void resume();
 public:

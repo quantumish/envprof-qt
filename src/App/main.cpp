@@ -14,9 +14,12 @@ int main(int argc, char *argv[])
     // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
     // uint64_t before = cpu_uJ();
     // auto start = std::chrono::high_resolution_clock::now();
-    Profiler prof(37741);
+    Profiler prof(152712);
+    prof.start();
+    prof.capture_and_freeze();
     prof.capture_and_freeze();	
-    prof.dump(prof.funcs);
+    //    prof.capture_and_freeze();	
+    prof.dump(prof.funcs, 0);
     QApplication app(argc, argv);
  
     QWidget widget;
