@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include <functional>
 #include <nvml.h>
 
 uint64_t cpu_uJ()
@@ -16,11 +17,11 @@ uint64_t cpu_uJ()
 	return energy;
 }
 
-double cpu_avg_baseline_mW(std::chrono::milliseconds ms)
+double collect_baseline_mW(std::function<uint64_t(void)> collector, std::chrono::milliseconds ms)
 {
-	uint64_t before = cpu_uJ();
+	uint64_t before = collector();
 	std::this_thread::sleep_for(ms);
-	uint64_t after = cpu_uJ();
+	uint64_t after = collector();
 	return (after-before)/static_cast<double>(ms.count());
 }
 

@@ -11,11 +11,11 @@
  
 int main(int argc, char *argv[]) 
 {
+    double cpu_baseline = collect_baseline_mW(cpu_uJ, std::chrono::milliseconds(5000));
+	double gpu_baseline = collect_baseline_mW(gpu_uJ, std::chrono::milliseconds(5000));
 	auto prev_cpu = cpu_uJ();
 	auto prev_gpu = gpu_uJ();      
-    // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
-    // uint64_t before = cpu_uJ();
-    // auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
 	// char* args[2] = {NULL};
     // Profiler prof(strtoll(argv[1], NULL, 10));
     // prof.start();   
@@ -49,14 +49,13 @@ int main(int argc, char *argv[])
  
     widget.show();
 
-	// auto end = std::chrono::high_resolution_clock::now();
 	// uint64_t after = cpu_uJ();
-	// double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();   
 	// std::cout << (after-before)/time - baseline << "mW \n";
 	// return app.exec();
 	app.exec();
+	auto end = std::chrono::high_resolution_clock::now();   
 	auto curr_cpu = cpu_uJ();
 	auto curr_gpu = gpu_uJ();
-	std::cout << curr_gpu << " " << prev_gpu << "\n";
-	std::cout << (curr_cpu - prev_cpu) << " " << (curr_gpu - prev_gpu) << "\n";	
+	double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();   
+	std::cout << (curr_cpu - prev_cpu)/time - cpu_baseline << " " << (curr_gpu - prev_gpu)/time - gpu_baseline << "\n";	
 }
