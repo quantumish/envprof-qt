@@ -11,15 +11,15 @@
  
 int main(int argc, char *argv[]) 
 {
-	setenv("XDG_RUNTIME_DIR", "/tmp/runtime-root", 0);
-	setenv("FONTCONFIG_PATH", "/etc/fonts", 0);	
+	auto prev_cpu = cpu_uJ();
+	auto prev_gpu = gpu_uJ();      
     // double baseline = cpu_avg_baseline_mW(std::chrono::milliseconds(1000000));
     // uint64_t before = cpu_uJ();
     // auto start = std::chrono::high_resolution_clock::now();
 	// char* args[2] = {NULL};
-    Profiler prof(strtoll(argv[1], NULL, 10));
-    prof.start();   
-	prof.dump(prof.funcs, 0);
+    // Profiler prof(strtoll(argv[1], NULL, 10));
+    // prof.start();   
+	// prof.dump(prof.funcs, 0);
     QApplication app(argc, argv);
  
     QWidget widget;
@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
     
     QGridLayout *gridLayout = new QGridLayout(&widget);
 
-    	// std::ostringstream os;
-    	// os << baseline;
+    // 	// std::ostringstream os;
+    // 	// os << baseline;
     QLabel* label = new QLabel(QString::fromStdString("Baseline mW: "));
 
     QPushButton* btn1 = new QPushButton("Push Me");
@@ -53,5 +53,10 @@ int main(int argc, char *argv[])
 	// uint64_t after = cpu_uJ();
 	// double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();   
 	// std::cout << (after-before)/time - baseline << "mW \n";
-	// return app.exec();	
+	// return app.exec();
+	app.exec();
+	auto curr_cpu = cpu_uJ();
+	auto curr_gpu = gpu_uJ();
+	std::cout << curr_gpu << " " << prev_gpu << "\n";
+	std::cout << (curr_cpu - prev_cpu) << " " << (curr_gpu - prev_gpu) << "\n";	
 }

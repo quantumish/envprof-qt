@@ -2,6 +2,8 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <iostream>
+#include <nvml.h>
 
 uint64_t cpu_uJ()
 {
@@ -22,4 +24,22 @@ double cpu_avg_baseline_mW(std::chrono::milliseconds ms)
 	return (after-before)/static_cast<double>(ms.count());
 }
 
+uint32_t gpu_direct_mW()
+{
+	nvmlInit_v2();
+	nvmlDevice_t dev;
+	nvmlDeviceGetHandleByIndex(0, &dev);
+	uint32_t power;
+	nvmlReturn_t ret = nvmlDeviceGetPowerUsage(dev, &power);
+	return power;   
+}
 
+uint64_t gpu_uJ()
+{
+	nvmlInit_v2();
+	nvmlDevice_t dev;
+	nvmlDeviceGetHandleByIndex(0, &dev);
+	uint64_t energy;
+	nvmlReturn_t ret = nvmlDeviceGetTotalEnergyConsumption(dev, reinterpret_cast<unsigned long long int*>(&energy));
+	return energy*1000;
+}

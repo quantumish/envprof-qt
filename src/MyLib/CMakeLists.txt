@@ -1,4 +1,4 @@
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} /opt/cuda/targets/x86_64-linux/include/)
 
 find_package(Qt6 COMPONENTS Core REQUIRED)
 
@@ -28,4 +28,5 @@ target_link_libraries(MyLib
 	unwind
 	unwind-ptrace
 	unwind-generic
+	nvidia-ml
 )
