@@ -40,12 +40,11 @@ void get_symbols(std::string path)
 			int status;
 			if (symbol.st_name != 0) {
 				char* mangled = reinterpret_cast<char*>(&strtbl[symbol.st_name]);
-				char* demangled = (char*)malloc(sizeof(char)*MAX_SYMLEN);
-				size_t max = MAX_SYMLEN;
-				abi::__cxa_demangle(mangled, demangled, &max, &status);
-				printf("%zu\n",max);
-			    demangled[max] = '\0';
-				printf("%s\n", demangled);
+				size_t sz;
+				char* demangled = abi::__cxa_demangle(mangled, NULL, &sz, &status);
+				if (status == 0) {
+					printf("%s\n", demangled);
+				}
 			}
 		}
 	}
