@@ -14,17 +14,38 @@
 #include <libunwind.h>
 #include <libunwind-x86.h>
 #include <libunwind-ptrace.h>
+#include "parser.hpp"
+#include <stack>
+
+#define MAXLINE 1024
 
 extern char** environ;
+
+static bool str_in_file(std::string path, std::string target)
+{    
+	FILE* fptr = fopen(path.c_str(), "r");
+	char line[MAXLINE];
+	while (fgets(line, MAXLINE, fptr) != NULL) {		
+		std::cout << target << " " << line << " " << target.compare(line) << "\n";
+		if (target.compare(line) == 0) {
+			std::cout << "SAME\n";
+			fclose(fptr);
+			return true;
+		}
+	}
+	fclose(fptr);
+	return false;
+}
 
 Func::Func(std::string id, uint64_t now, uint64_t init_energy)
     :name(id), start(now), duration(0), energy(init_energy)
 {
 }
 
-Profiler::Profiler(pid_t p)
-    :pid{p}, interval{1}
+Profiler::Profiler(pid_t p, std::string log_path)
+	:pid{p}, interval{1}, log{}
 {
+	log.open(log_path);
 }
 
 Profiler::Profiler(std::string cmd)
@@ -86,13 +107,47 @@ void Profiler::dump(std::vector<Func*>& level, int indent)
     }
 }
 
+std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_namespaces)
+{
+	std::cout << "AAA\n";
+	std::stack<std::pair<std::vector<Func*>, uint64_t>> stk;
+	stk.push({funcs, total});
+	bool not_entered = true;
+	while (stk.size() > 0) {
+		std::vector<Func*> level = stk.top().first;
+		uint64_t energy = stk.top().second;
+		stk.pop();
+		for (Func* f : level) {
+			if (f->energy/static_cast<float>(energy) < 0.4) continue;
+			// std::cout << f->name << "\n";
+			if (str_in_file("./symbols.txt", f->name)) {
+				not_entered = false;
+				std::cout << f->name << "\n";
+				stk.push({f->callees, f->energy});
+			}
+			else if (not_entered){ 
+				stk.push({f->callees, f->energy});
+			}
+		}
+	}
+	return funcs;
+}
+
 void Profiler::start()
 {
 	std::cout << pid << " " << getpid() << "\n";
     curr_count = cpu_uJ();
+	uint64_t start_count = curr_count;
     // TODO Add exit condition
-	for (samples = 0; samples < 1003; samples++) {
+	for (samples = 0; samples < 100; samples++) {
 		capture_and_freeze();
-		usleep(interval.count()*10000);		
+		usleep(interval.count()*1000);		
 	}
+	uint64_t end_count = cpu_uJ();
+	total=end_count-curr_count;
+}
+
+Profiler::~Profiler()
+{
+	log.close();
 }

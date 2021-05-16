@@ -13,9 +13,11 @@
  
 int main(int argc, char *argv[]) 
 {
-    // Profiler prof(strtoll(argv[1], NULL, 10));
-    // prof.start();   
+    Profiler prof(strtoll(argv[1], NULL, 10));
+    prof.start();   
 	// prof.dump(prof.funcs, 0);
+	prof.expensive_funcs();
+	std::cout << "WTF\n";
     QApplication app(argc, argv);   
     QWidget widget;
     widget.resize(640, 480);
@@ -29,19 +31,20 @@ int main(int argc, char *argv[])
 	QPushButton* open = new QPushButton("Open Log");
 	QPushButton* retry = new QPushButton("Re-record");	
 
-	QObject::connect(close, &QPushButton::released, &QApplication::quit);	
-	
-    // QObject::connect(btn1, &QPushButton::released, &widget,
-    //     []() 
-    //     { 
-    //         app::Window1* dialog = new app::Window1();
-    //         dialog->setModal(true);
-    //         dialog->setWindowModality(Qt::ApplicationModal);
-    //         dialog->exec();
-    //         delete dialog;
-    //     });
+	QObject::connect(close, &QPushButton::released, &QApplication::quit);
+    QObject::connect(open, &QPushButton::released, []{system("xdg-open ./latest.log");});
 
-    label->setAlignment(Qt::AlignVCenter);
+	// QObject::connect(btn1, &QPushButton::released, &widget,
+	//     []()
+	//     {
+	//         app::Window1* dialog = new app::Window1();
+	//         dialog->setModal(true);
+	//         dialog->setWindowModality(Qt::ApplicationModal);
+	//         dialog->exec();
+	//         delete dialog;
+	//     });
+	
+	label->setAlignment(Qt::AlignVCenter);
 
 	QGroupBox* groupbox = new QGroupBox("envopt: indev 0.0");
 	groupbox->setFlat(true);
@@ -62,5 +65,5 @@ int main(int argc, char *argv[])
 
 	// uint64_t after = cpu_uJ();
 	// std::cout << (after-before)/time - baseline << "mW \n";
-	return app.exec();
+//	return app.exec();
 }
