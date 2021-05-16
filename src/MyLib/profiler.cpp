@@ -14,8 +14,11 @@
 #include <libunwind.h>
 #include <libunwind-x86.h>
 #include <libunwind-ptrace.h>
-#include "parser.hpp"
 #include <stack>
+#include <string.h>
+#include <cxxabi.h>
+
+#include "parser.hpp"
 
 #define MAXLINE 1024
 
@@ -25,10 +28,9 @@ static bool str_in_file(std::string path, std::string target)
 {    
 	FILE* fptr = fopen(path.c_str(), "r");
 	char line[MAXLINE];
-	while (fgets(line, MAXLINE, fptr) != NULL) {		
-		std::cout << target << " " << line << " " << target.compare(line) << "\n";
-		if (target.compare(line) == 0) {
-			std::cout << "SAME\n";
+	while (fgets(line, MAXLINE, fptr)) {		
+		line[strlen(line)-1] = '\0';
+		if (strcmp(target.c_str(), line) == 0) {
 			fclose(fptr);
 			return true;
 		}
@@ -80,7 +82,7 @@ void Profiler::capture_and_freeze()
 	std::vector<std::string> names;
 	do {
 	    unw_word_t offset, pc;
-	    char fname[64];
+	    char fname[256];
 	    unw_get_proc_name(&c, fname, sizeof(fname), &offset);
 	    names.insert(names.begin(), std::string(fname));
 	} while (unw_step(&c) > 0);	
@@ -109,9 +111,12 @@ void Profiler::dump(std::vector<Func*>& level, int indent)
 
 std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_namespaces)
 {
-	std::cout << "AAA\n";
 	std::stack<std::pair<std::vector<Func*>, uint64_t>> stk;
-	stk.push({funcs, total});
+	if (funcs[0]->name.compare("_start") == 0) {
+		stk.push({funcs[0]->callees, funcs[0]->energy});
+	}
+	else stk.push({funcs, total});
+	std::vector<Func*> expensive;
 	bool not_entered = true;
 	while (stk.size() > 0) {
 		std::vector<Func*> level = stk.top().first;
@@ -119,18 +124,26 @@ std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_na
 		stk.pop();
 		for (Func* f : level) {
 			if (f->energy/static_cast<float>(energy) < 0.4) continue;
-			// std::cout << f->name << "\n";
 			if (str_in_file("./symbols.txt", f->name)) {
 				not_entered = false;
-				std::cout << f->name << "\n";
+				//std::cout << f->name << "\n";
+				int status;
+				size_t sz;
+				char* demangled = abi::__cxa_demangle(f->name.c_str(), NULL, &sz, &status);
+				if (status == 0) {
+					for (std::string namespc : exclude_namespaces) {	
+						std::cout << namespc << " " << demangled << "\n";
+						if (strncmp(namespc.c_str(), demangled, namespc.length()) == 0) continue;
+					}
+					f->name = demangled; // FIXME MUST BE TEMPORARY DO NOT FORGET
+				}
+				expensive.push_back(f);
 				stk.push({f->callees, f->energy});
 			}
-			else if (not_entered){ 
-				stk.push({f->callees, f->energy});
-			}
+			else if (not_entered) stk.push({f->callees, f->energy});
 		}
 	}
-	return funcs;
+	return expensive;
 }
 
 void Profiler::start()

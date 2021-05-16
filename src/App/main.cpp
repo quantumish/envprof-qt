@@ -16,8 +16,10 @@ int main(int argc, char *argv[])
     Profiler prof(strtoll(argv[1], NULL, 10));
     prof.start();   
 	// prof.dump(prof.funcs, 0);
-	prof.expensive_funcs();
-	std::cout << "WTF\n";
+    auto expensive = prof.expensive_funcs({"Eigen", "std"});
+	for (Func* f : expensive) {
+		// std::cout << f->name << "\n";
+	}
     QApplication app(argc, argv);   
     QWidget widget;
     widget.resize(640, 480);
