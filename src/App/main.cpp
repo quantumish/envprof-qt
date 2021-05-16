@@ -6,8 +6,8 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QPushButton>
 #include <iostream>
-#include <../MyLib/measure.hpp>
-#include <../MyLib/profiler.hpp>
+#include <../envprof/measure.hpp>
+#include <../envprof/profiler.hpp>
 
 #include "Window1.h"
  

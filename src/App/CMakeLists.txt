@@ -39,7 +39,7 @@ add_executable(App ${GUI_TYPE}
 )
 
 target_link_libraries(App 
-    MyLib
+    envprof
     ${CONAN_TARGETS}
 )
 

@@ -18,13 +18,13 @@ set(HEADER_FILES
     ${MOC_HEADERS}
 )
 
-add_library(MyLib STATIC
+add_library(envprof STATIC
     ${SOURCE_FILES}
     ${HEADER_FILES}
     ${MOC_SOURCE_FILES}
 )
 
-target_link_libraries(MyLib
+target_link_libraries(envprof
     Qt6::Core
     coverage_config
 	unwind

@@ -88,7 +88,7 @@ void Profiler::capture_and_freeze()
 		int status;
 		size_t sz;
 		char* demangled = abi::__cxa_demangle(fname, NULL, &sz, &status);
-	    names.insert(names.begin(), std::string(demangled));
+		if (status == 0) names.insert(names.begin(), std::string(demangled));
 	} while (unw_step(&c) > 0);	
 	std::vector<Func*>* level = &funcs;
 	for (std::string name : names) {
