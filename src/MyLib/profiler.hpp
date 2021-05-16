@@ -35,6 +35,6 @@ public:
     void start();
 	void capture_and_freeze();
 	void dump(std::vector<Func*>& level, int indent = 0);
-	std::vector<Func *> expensive_funcs(std::vector<std::string> exclude_namespaces = {});
+	const std::vector<Func*> expensive_funcs(std::vector<std::string> exclude_namespaces = {});
 };
 

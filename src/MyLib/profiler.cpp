@@ -21,10 +21,11 @@
 #include "parser.hpp"
 
 #define MAXLINE 1024
+#define MAX_SYMLEN 256
 
 extern char** environ;
 
-static bool str_in_file(std::string path, std::string target)
+static const bool str_in_file(std::string path, std::string target)
 {    
 	FILE* fptr = fopen(path.c_str(), "r");
 	char line[MAXLINE];
@@ -82,9 +83,12 @@ void Profiler::capture_and_freeze()
 	std::vector<std::string> names;
 	do {
 	    unw_word_t offset, pc;
-	    char fname[256];
+	    char fname[MAX_SYMLEN];
 	    unw_get_proc_name(&c, fname, sizeof(fname), &offset);
-	    names.insert(names.begin(), std::string(fname));
+		int status;
+		size_t sz;
+		char* demangled = abi::__cxa_demangle(fname, NULL, &sz, &status);
+	    names.insert(names.begin(), std::string(demangled));
 	} while (unw_step(&c) > 0);	
 	std::vector<Func*>* level = &funcs;
 	for (std::string name : names) {
@@ -109,10 +113,22 @@ void Profiler::dump(std::vector<Func*>& level, int indent)
     }
 }
 
-std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_namespaces)
+static const bool valid_namespace(std::string symbol, std::vector<std::string> exclude)
+{
+	for (std::string namespc : exclude) {	
+		std::string funcname = namespc.substr(namespc.find(" ")+1);		
+		if (namespc.compare(symbol) == 0 || funcname.compare(symbol) == 0) {
+			return false;
+			break;
+		}
+	}
+	return true;
+}
+
+const std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_namespaces)
 {
 	std::stack<std::pair<std::vector<Func*>, uint64_t>> stk;
-	if (funcs[0]->name.compare("_start") == 0) {
+	if (funcs[0]->name.compare("_start") == 0) { // HACK
 		stk.push({funcs[0]->callees, funcs[0]->energy});
 	}
 	else stk.push({funcs, total});
@@ -126,25 +142,7 @@ std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_na
 			if (f->energy/static_cast<float>(energy) < 0.4) continue;
 			if (str_in_file("./symbols.txt", f->name)) {
 				not_entered = false;
-				//std::cout << f->name << "\n";
-				int status;
-				size_t sz;
-				char* demangled = abi::__cxa_demangle(f->name.c_str(), NULL, &sz, &status);
-				bool valid = true;
-				if (status == 0) {
-					for (std::string namespc : exclude_namespaces) {	
-						// std::cout << namespc << " " << demangled << ' ' << strncmp(namespc.c_str(), demangled, namespc.length()) << "\n";
-						std::string funcname = namespc.substr(namespc.find(" ")+1);
-						
-						if (strncmp(namespc.c_str(), demangled, namespc.length()) == 0 ||
-							strncmp(funcname.c_str(), demangled, namespc.length()) == 0) {
-							valid=false;
-							break;
-						}
-					}
-					f->name = demangled; // FIXME MUST BE TEMPORARY DO NOT FORGET
-				}
-				if (valid) expensive.push_back(f);
+				if (valid_namespace(f->name, exclude_namespaces)) expensive.push_back(f);
 				stk.push({f->callees, f->energy});
 			}
 			else if (not_entered) stk.push({f->callees, f->energy});
