@@ -72,7 +72,7 @@ const Func* Profiler::attempt_update(std::vector<Func*>& funcs, const std::strin
 void Profiler::capture_and_freeze()
 {
 	prev_count = curr_count;
-	curr_count = cpu_uJ();	
+	curr_count = cpu_uJ();
 	ptrace(PTRACE_ATTACH, pid);
 	void* ui = _UPT_create(pid);
 	if (!ui) throw std::runtime_error("_UPT_create() failed.");
@@ -155,16 +155,15 @@ std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_na
 
 void Profiler::start()
 {
-	std::cout << pid << " " << getpid() << "\n";
     curr_count = cpu_uJ();
 	uint64_t start_count = curr_count;
     // TODO Add exit condition
-	for (samples = 0; samples < 100; samples++) {
+	for (samples = 0; samples < 1000; samples++) {
 		capture_and_freeze();
 		usleep(interval.count()*1000);		
 	}
 	uint64_t end_count = cpu_uJ();
-	total=end_count-curr_count;
+	total=funcs[0]->energy;
 }
 
 Profiler::~Profiler()

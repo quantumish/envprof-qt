@@ -21,13 +21,13 @@ class Profiler
     const std::chrono::milliseconds interval;
     uint64_t prev_count;
     uint64_t curr_count;
-	uint64_t total;
     pid_t pid;
     uint64_t baseline;
 	std::ofstream log;
   
     const Func* attempt_update(std::vector<Func*>& funcs, const std::string& name, uint64_t energy);
 public:
+	uint64_t total;
     Profiler(pid_t pid, std::string logs = "./latest.log");
     Profiler(std::string cmd);
 	~Profiler();

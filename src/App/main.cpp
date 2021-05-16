@@ -13,13 +13,13 @@
  
 int main(int argc, char *argv[]) 
 {
+	setenv("XDG_RUNTIME_DIR", "/tmp/runtime-root", 0);
+	setenv("FONTCONFIG_PATH", "/etc/fonts", 0);	
     Profiler prof(strtoll(argv[1], NULL, 10));
     prof.start();   
 	// prof.dump(prof.funcs, 0);
     auto expensive = prof.expensive_funcs({"Eigen", "std"});
-	for (Func* f : expensive) {
-		// std::cout << f->name << "\n";
-	}
+
     QApplication app(argc, argv);   
     QWidget widget;
     widget.resize(640, 480);
@@ -27,26 +27,13 @@ int main(int argc, char *argv[])
 
     QGridLayout *gridLayout = new QGridLayout(&widget);
 
-    QLabel* label = new QLabel(QString::fromStdString("envopt"));
-
-    QPushButton* close = new QPushButton("Close");
+    QPushButton* close = new QPushButton("&Close");
 	QPushButton* open = new QPushButton("Open Log");
 	QPushButton* retry = new QPushButton("Re-record");	
 
 	QObject::connect(close, &QPushButton::released, &QApplication::quit);
     QObject::connect(open, &QPushButton::released, []{system("xdg-open ./latest.log");});
-
-	// QObject::connect(btn1, &QPushButton::released, &widget,
-	//     []()
-	//     {
-	//         app::Window1* dialog = new app::Window1();
-	//         dialog->setModal(true);
-	//         dialog->setWindowModality(Qt::ApplicationModal);
-	//         dialog->exec();
-	//         delete dialog;
-	//     });
 	
-	label->setAlignment(Qt::AlignVCenter);
 
 	QGroupBox* groupbox = new QGroupBox("envopt: indev 0.0");
 	groupbox->setFlat(true);
@@ -54,6 +41,23 @@ int main(int argc, char *argv[])
 	QGroupBox* targets = new QGroupBox("Primary Offenders");
 	QGroupBox* opt = new QGroupBox("Optimization Strategies");
 	QGroupBox* env = new QGroupBox("Environmental Impact");
+    QGridLayout* targets_layout = new QGridLayout;
+	targets->setLayout(targets_layout);
+	QVBoxLayout* names = new QVBoxLayout;
+	QVBoxLayout* percentages = new QVBoxLayout;
+	targets_layout->addLayout(names, 0, 0);
+	targets_layout->addLayout(percentages, 0, 1);   
+	for (Func* f : expensive) {
+	    names->addWidget(new QLabel(QString::fromStdString(f->name)));
+		QString str;		
+		double percent = f->energy/static_cast<double>(prof.total);
+		str.setNum(percent*100, 'g', 4);
+		QLabel* label = new QLabel(str);
+		percentages->addWidget(label);
+	    label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+		label->setMargin(3);
+		label->setStyleSheet("QLabel { background-color : rgba(255,0,0,"+QString::fromStdString(std::to_string(percent))+"); }");
+	}
 	vbox->addWidget(targets);
 	vbox->addWidget(opt);
 	vbox->addWidget(env);
@@ -65,7 +69,5 @@ int main(int argc, char *argv[])
  
     widget.show();
 
-	// uint64_t after = cpu_uJ();
-	// std::cout << (after-before)/time - baseline << "mW \n";
-//	return app.exec();
+	return app.exec();
 }
