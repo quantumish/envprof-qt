@@ -21,12 +21,11 @@ void get_symbols(std::string path)
 	std::vector<std::array<Elf64_Shdr,2>> symtabs;
 	Elf64_Shdr syment[2] = {0};
     for (int i = 0; i < header.e_shnum-1; i++) {
-		fread(&syment, sizeof(Elf64_Shdr), 2, fptr);
-		// printf("%d %d\n", syment[0].sh_type, syment[1].sh_type);
+		fread(&syment, sizeof(Elf64_Shdr), 2, fptr); // NOTE: questionable
 		if (syment[0].sh_type == SHT_SYMTAB && syment[1].sh_type == SHT_STRTAB) {
 			symtabs.push_back({syment[0], syment[1]});
 		}
-		fseek(fptr, -sizeof(Elf64_Shdr), SEEK_CUR);
+		fseek(fptr, -sizeof(Elf64_Shdr), SEEK_CUR); // HACK 
 	}
 	for (std::array<Elf64_Shdr,2> symtab : symtabs) {
 		fseek(fptr, symtab[1].sh_offset, SEEK_SET);
@@ -34,23 +33,27 @@ void get_symbols(std::string path)
 		fread(strtbl, symtab[1].sh_size, 1, fptr);
 		fseek(fptr, symtab[0].sh_offset, SEEK_SET);
 		printf("Seeked to symbol table.\n");
+		FILE* out = fopen("./symbols.txt", "w");
 		Elf64_Sym symbol = {0};
 		for (size_t i = 0; i < symtab[0].sh_size; i+=sizeof(Elf64_Sym)) {
 			fread(&symbol, sizeof(Elf64_Sym), 1, fptr);
-			int status;
+			// int status;
 			if (symbol.st_name != 0) {
-				char* mangled = reinterpret_cast<char*>(&strtbl[symbol.st_name]);
-				size_t sz;
-				char* demangled = abi::__cxa_demangle(mangled, NULL, &sz, &status);
-				if (status == 0) {
-					printf("%s\n", demangled);
-				}
+				char* mangled = reinterpret_cast<char*>(&strtbl[symbol.st_name]);				
+				fprintf(out, "%s\n", mangled);
+			// 	size_t sz;)
+			// 	char* demangled = abi::__cxa_demangle(mangled, NULL, &sz, &status);
+			// 	if (status == 0) {
+			// 		printf("%s\n", demangled);
+			// 	}
 			}
 		}
-	}
+		fclose(out);
+	}    
+	fclose(fptr);
 }
 
-int main()
-{
-	get_symbols("/home/quantumish/projects/fold/fold");
-}
+// int main()
+// {
+// 	get_symbols("/home/quantumish/projects/fold/fold");
+// }

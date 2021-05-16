@@ -3,7 +3,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} /opt/cuda/targets/x86_64-linux/i
 find_package(Qt6 COMPONENTS Core REQUIRED)
 
 set(SOURCE_FILES
-	measure.cpp
+    measure.cpp
+	parser.cpp
 	profiler.cpp
 )
 
@@ -11,7 +12,8 @@ set (MOC_HEADERS
 )
 
 set(HEADER_FILES
-	measure.hpp
+    measure.hpp
+	parser.hpp
 	profiler.hpp
     ${MOC_HEADERS}
 )
