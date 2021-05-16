@@ -130,14 +130,21 @@ std::vector<Func*> Profiler::expensive_funcs(std::vector<std::string> exclude_na
 				int status;
 				size_t sz;
 				char* demangled = abi::__cxa_demangle(f->name.c_str(), NULL, &sz, &status);
+				bool valid = true;
 				if (status == 0) {
 					for (std::string namespc : exclude_namespaces) {	
-						std::cout << namespc << " " << demangled << "\n";
-						if (strncmp(namespc.c_str(), demangled, namespc.length()) == 0) continue;
+						// std::cout << namespc << " " << demangled << ' ' << strncmp(namespc.c_str(), demangled, namespc.length()) << "\n";
+						std::string funcname = namespc.substr(namespc.find(" ")+1);
+						
+						if (strncmp(namespc.c_str(), demangled, namespc.length()) == 0 ||
+							strncmp(funcname.c_str(), demangled, namespc.length()) == 0) {
+							valid=false;
+							break;
+						}
 					}
 					f->name = demangled; // FIXME MUST BE TEMPORARY DO NOT FORGET
 				}
-				expensive.push_back(f);
+				if (valid) expensive.push_back(f);
 				stk.push({f->callees, f->energy});
 			}
 			else if (not_entered) stk.push({f->callees, f->energy});
