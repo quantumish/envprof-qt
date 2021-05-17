@@ -5,12 +5,32 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QPushButton>
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Options.hpp>
+#include <nlohmann/json.hpp>
 #include <iostream>
 #include <../envprof/measure.hpp>
 #include <../envprof/profiler.hpp>
 
 #include "Window1.h"
- 
+
+using json = nlohmann::json;
+
+void fill_env_box(QGroupBox* box, Func* main)
+{
+	curlpp::Cleanup clean;
+	const std::vector<std::string> api_codes {"CL", "PA", "WS", "WY", "SO", "WD", "NU", "OJ", "NG", "GE", "HV"};
+	const std::vector<std::string> api_names {"Coal", "Petroleum", "Waste", "Wind", "Solar", "Wood",
+		                                      "Nuclear", "Other Gases", "Natural Gas", "Geothermal", "Hydro"};
+	std::string api_key (getenv("API_KEY"));
+	for (int i = 0; i < api_codes.size(); i++) {
+		std::ostringstream os;
+		os << curlpp::options::Url("https://api.eia.gov/series/?api_key="+api_key+"&series_id=TOTAL."+api_codes[i]+"ETPUS.M");
+		json raw_json = json::parse(os.str());
+		std::cout << api_names[i] << ": " << raw_json["series"][0]["data"][0][1] << "\n";
+	} 
+}
+
 int main(int argc, char *argv[]) 
 {
 	setenv("XDG_RUNTIME_DIR", "/tmp/runtime-root", 0);
@@ -46,18 +66,19 @@ int main(int argc, char *argv[])
 	QVBoxLayout* names = new QVBoxLayout;
 	QVBoxLayout* percentages = new QVBoxLayout;
 	targets_layout->addLayout(names, 0, 0);
-	targets_layout->addLayout(percentages, 0, 1);   
+	targets_layout->addLayout(percentages, 0, 1);
 	for (Func* f : expensive) {
 	    names->addWidget(new QLabel(QString::fromStdString(f->name)));
 		QString str;		
 		double percent = f->energy/static_cast<double>(prof.total);
-		str.setNum(percent*100, 'g', 4);
-		QLabel* label = new QLabel(str);
+		str.setNum(f->energy/1e6, 'g', 4);
+		QLabel* label = new QLabel(str+QString(" J"));
 		percentages->addWidget(label);
 	    label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		label->setMargin(3);
 		label->setStyleSheet("QLabel { background-color : rgba(255,0,0,"+QString::fromStdString(std::to_string(percent))+"); }");
 	}
+	fill_env_box(env, expensive[0]);
 	vbox->addWidget(targets);
 	vbox->addWidget(opt);
 	vbox->addWidget(env);
@@ -69,5 +90,5 @@ int main(int argc, char *argv[])
  
     widget.show();
 
-	return app.exec();
+//	return app.exec();
 }
