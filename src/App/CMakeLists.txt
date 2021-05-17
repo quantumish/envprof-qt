@@ -40,6 +40,8 @@ add_executable(App ${GUI_TYPE}
 
 target_link_libraries(App 
     envprof
+	curl
+	curlpp
     ${CONAN_TARGETS}
 )
 

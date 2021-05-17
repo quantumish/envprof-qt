@@ -8,7 +8,9 @@
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <nlohmann/json.hpp>
+#include <sys/stat.h>
 #include <iostream>
+#include <fstream>
 #include <../envprof/measure.hpp>
 #include <../envprof/profiler.hpp>
 
@@ -22,11 +24,13 @@ void fill_env_box(QGroupBox* box, Func* main)
 	const std::vector<std::string> api_codes {"CL", "PA", "WS", "WY", "SO", "WD", "NU", "OJ", "NG", "GE", "HV"};
 	const std::vector<std::string> api_names {"Coal", "Petroleum", "Waste", "Wind", "Solar", "Wood",
 		                                      "Nuclear", "Other Gases", "Natural Gas", "Geothermal", "Hydro"};
-	std::string api_key (getenv("API_KEY"));
+	std::ifstream api_file("./api_file");
+	std::string api_key((std::istreambuf_iterator<char>(api_file)),  std::istreambuf_iterator<char>());
+	api_key.pop_back(); // HACK
 	for (int i = 0; i < api_codes.size(); i++) {
 		std::ostringstream os;
-		os << curlpp::options::Url("https://api.eia.gov/series/?api_key="+api_key+"&series_id=TOTAL."+api_codes[i]+"ETPUS.M");
-		json raw_json = json::parse(os.str());
+		os << curlpp::options::Url("https://api.eia.gov/series/?api_key="+api_key+"&series_id=TOTAL."+api_codes[i]+"ETPUS.M"); // TODO Cache me.
+	    json raw_json = json::parse(os.str());
 		std::cout << api_names[i] << ": " << raw_json["series"][0]["data"][0][1] << "\n";
 	} 
 }
@@ -78,7 +82,7 @@ int main(int argc, char *argv[])
 		label->setMargin(3);
 		label->setStyleSheet("QLabel { background-color : rgba(255,0,0,"+QString::fromStdString(std::to_string(percent))+"); }");
 	}
-	fill_env_box(env, expensive[0]);
+	// fill_env_box(env, expensive[0]);
 	vbox->addWidget(targets);
 	vbox->addWidget(opt);
 	vbox->addWidget(env);
@@ -90,5 +94,5 @@ int main(int argc, char *argv[])
  
     widget.show();
 
-//	return app.exec();
+	return app.exec();
 }
