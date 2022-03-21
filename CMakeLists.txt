@@ -10,12 +10,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CMake/conan.cmake)
 conan_cmake_run(REQUIRES
-    qt/6.0.1@bincrafters/stable
-    openssl/1.1.1k
+    qt/6.2.1 # @bincrafters/stable
+    openssl/1.1.1l
     BASIC_SETUP CMAKE_TARGETS
     BUILD missing)
 
 add_library(coverage_config INTERFACE)
+link_libraries(md4c)
+
 
 if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     # Add required flags (GCC & LLVM/Clang)
